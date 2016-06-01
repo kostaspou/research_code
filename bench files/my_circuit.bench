@@ -1,0 +1,27 @@
+# 4 inputs
+# 1 outputs
+# 3 D-type flipflops
+# 2 inverters
+# 8 gates (1 ANDs + 1 NANDs + 2 ORs + 4 NORs)
+
+INPUT(A)
+INPUT(B)
+INPUT(C)
+
+OUTPUT(G8)
+OUTPUT(G11)
+OUTPUT(G14)
+
+G4 = AND(A, B)
+G8 = AND(G6, G4)
+
+G5 = XOR(G4, B)
+G6 = XOR(G5, G4)
+G12 = XOR(G9, B)
+
+G9 = NOT(G6)
+G7 = NOT(G5)
+
+G11 = OR(G7, G9)
+
+G14 = NAND(G12, G5, C)

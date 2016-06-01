@@ -1,0 +1,14 @@
+# c17
+# 5 inputs
+# 2 outputs
+# 0 inverter
+# 6 gates ( 6 NANDs )
+
+INPUT(a)
+INPUT(b)
+
+OUTPUT(g)
+
+f = NOT(b)
+e = NAND(a, b)
+g = OR(e, f)
