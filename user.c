@@ -45,8 +45,7 @@ nodes_number++;
 			for(j=0;j<=Max;j++){
 				if(graph[j].Type == INPT){
 					vector[j-1] = graph[j].Cval;
-					//fprintf(fres,"%d",input_value);
-					graph[0].Cval = 3;	
+					//fprintf(fres,"%d",input_value);	
 				}
 			}
 			coverage++;
@@ -88,7 +87,7 @@ nodes_number++;
 							vector[j-1] = graph[j].Cval;
 							//fprintf(fres,"%d",input_value);	
 						}
-					}graph[0].Cval = 3;
+					}
 					//printf("\n------------------------DETECTED-----------------\n");
 					coverage++;
 				}else if(frontier == NULL) {
