@@ -1,8 +1,8 @@
 CC              = cc
 SRC             = main.c graph.c new.c user.c
 TARGET          = project
-INCLUDE       = /opt/net/apps/cudd/include 
-WHERE	 = /opt/net/apps/cudd
+INCLUDE       = /home/kostas/Downloads/cudd-2.4.2/include 
+WHERE	 = /home/kostas/Downloads/cudd-2.4.2
 LIB           = $(WHERE)/dddmp/libdddmp.a $(WHERE)/cudd/libcudd.a \
 	$(WHERE)/mtr/libmtr.a $(WHERE)/st/libst.a $(WHERE)/util/libutil.a \
 	$(WHERE)/epd/libepd.a
