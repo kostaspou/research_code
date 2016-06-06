@@ -179,5 +179,5 @@ int * my_Cudd_zddPrintMinterm(DdManager *,DdNode *);
 preprocess_info fault_grading(NODE *,int,int );
 int Two_Gates (int, int , int );
 void algorithm(NODE *,int ,int );
-void shift(NODE *,int ,int ,int *,fault_list_info *,int );
-void apply(NODE *,int ,int ,int *,fault_list_info *);
+int shift(NODE *,int ,int ,int *,fault_list_info *);
+int apply_or_shift(NODE *,int ,int ,int *,fault_list_info *);
