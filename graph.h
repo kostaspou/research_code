@@ -181,3 +181,7 @@ int Two_Gates (int, int , int );
 void algorithm(NODE *,int ,int );
 void shift(NODE *,int ,int ,int *,fault_list_info *,int );
 void apply(NODE *,int ,int ,int *,fault_list_info *);
+/***************************************************************************************************************************
+Functions in extra_functions.c
+****************************************************************************************************************************/
+void update_graph(NODE *,int );

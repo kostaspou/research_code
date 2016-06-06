@@ -1,5 +1,5 @@
 CC              = cc
-SRC             = main.c graph.c new.c user.c
+SRC             = main.c graph.c new.c user.c extra_functions.c
 TARGET          = project
 INCLUDE       = /home/kostas/Downloads/cudd-2.4.2/include 
 WHERE	 = /home/kostas/Downloads/cudd-2.4.2

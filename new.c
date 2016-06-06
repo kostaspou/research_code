@@ -708,14 +708,14 @@ for(i=0;i<npi;i++){
 	printf("%d",vector_and_grade[0].vector[i]);
 }
 apply(graph,Max,npi,temp_vector,fault_list);
-
+/*
 memcpy(temp_vector,vector,npi*sizeof(int));
 printf("Before shift");
 for(i=0;i<npi;i++){
 	printf("%d",vector_and_grade[0].vector[i]);
 }
 shift(graph,Max,npi,temp_vector,fault_list,0);
-
+*/
 for(i=2;i<2*Max;i++){
 	printf("\nNew function for fault %d i have the grade %f and detected %d",fault_list[i].id,fault_list[i].value,fault_list[i].detected );
 }
@@ -746,13 +746,18 @@ for(i=0;i<Max;i++){
 	else graph[i].Cval = 2;
 }
 
+update_graph(graph,Max);
+
+
+/*
+//generate random input fro PI not dff
 fault_list = create_fault_list(graph,Max,in_vector,2);
 printf("\nVector 1:");
 for(j=0;j<npi;j++) printf("%d",in_vector[j]);
+*/
 
-/*
 //call PODEM for the first not detected fault in the list
-for(i=2;i<2*Max;i++){
+for(i=2;i<8;i++){
 	if(fault_info[i].detected == 0){
 		if(fault_info[i].id%2==0){
 			vector = Simulate(graph,Max,fault_info[i].id/2,0,npi);
@@ -761,7 +766,9 @@ for(i=2;i<2*Max;i++){
 			vector = Simulate(graph,Max,(fault_info[i].id-1)/2,1,npi);
 
 		}
+PrintCircuit(graph,Max);
 	}
+
 	flag = 0;
 				for(j=0;j<npi;j++) printf("%d",vector[j]);
 	for(j=0;j<npi;j++)
@@ -769,12 +776,12 @@ for(i=2;i<2*Max;i++){
 			flag = 1;
 //if(flag == 0){printf("the vector is full at i %d",i); break;}
 }
-*/
+
 /*
 for(i=0;i<=Max;i++){
 	if(graph[i].dff == 1 && graph[i].Po == 1 && graph[i].order ==2) last_dff = i;
 }
-*/
+
 	k=0;
 	grade = 0.0;
 	for(j=0;j<=Max;j++)
@@ -793,6 +800,7 @@ for(i=0;i<=Max;i++){
 		k++;
 	}
 printf("\nThe grade after apply is %f",grade);
+*/
 }
 
 void shift(NODE *graph,int Max,int npi,int *in_vector,fault_list_info *fault_info,int value)

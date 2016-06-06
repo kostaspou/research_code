@@ -538,7 +538,7 @@ int previous,i,res;
 			    } //end case
 
 				//inject the input
-				if (i == node_id){
+				if (i == node_id ){
 					graph[i].Cval = value;
 					//printf("i am here\n");
 				}
