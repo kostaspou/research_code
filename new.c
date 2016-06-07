@@ -29,7 +29,7 @@ index = 0;
 		for(i=0;i<=Max;i++){
 // Switch statement to manipulate every node according to their type
 if(graph[i].Type != 0){
-printf("\ni am at NODE =  %d",i);
+//printf("\ni am at NODE =  %d",i);
 			switch (graph[i].Type)  {
 			    case INPT  :
 				if(option == 0){
@@ -56,10 +56,10 @@ printf("\ni am at NODE =  %d",i);
 //else graph[i].Cval = 1;
 //graph[i].Cval = 0;
 
-				if(graph[i].Cval == 0){printf("\ni am at rising input %d",i);
+				if(graph[i].Cval == 0){
 					graph[i].fault = Cudd_zddChange(manager,onez,2*i);
 					Cudd_Ref(graph[i].fault);
-				} else if (graph[i].Cval == 1){printf("\ni am at falling input %d",i);
+				} else if (graph[i].Cval == 1){
 					graph[i].fault = Cudd_zddChange(manager,onez,2*i+1);
 					Cudd_Ref(graph[i].fault);
 				}
@@ -514,7 +514,7 @@ preprocess_info fault_grading(NODE *graph,int Max,int npi)
 int **fault_list;
 int *list;
 int k,j,i,n,no_vectors,max,top;
-no_vectors = 40;
+no_vectors = 400;
 float *fault_grades = (float *)malloc(2*Max*sizeof(float));
 int * vector,*swap;
 float temp;
@@ -529,6 +529,7 @@ for(i=0;i<2*Max;i++){
 	fault_grades[i] = 0;
 }
 for(n=0;n<no_vectors;n++){
+printf("\nVector # %d",n);
 	vector = (int *) malloc(npi*sizeof(int));
 	fault_list = create_fault_list(graph,Max,vector,0);
 	vector_and_grade[n].vector = vector;
@@ -625,26 +626,25 @@ preprocess_info preprocess;
 int * vector,*list,**faults;
 float *fault_grades;
 vector_info *vector_and_grade;
-fault_list_info fault_list[2*Max],swap;
+fault_list_info swap;
 int *temp_vector = (int *)malloc(npi*sizeof(int));
+fault_list_info *fault_list = (fault_list_info  *)malloc(2*Max*sizeof(fault_list_info ));
 
 preprocess = fault_grading(graph,Max,npi);
 
 vector_and_grade = preprocess.vector_data;
 fault_grades = preprocess.fault_grades;
 
-for(i=2;i<2*Max;i++){
+for(i=0;i<2*Max;i++){
 	fault_list[i].value = fault_grades[i];
 	fault_list[i].id = i;
-	fault_list[i].detected = 0;
+	fault_list[i].detected = fault_list[i].apply_detected = fault_list[i].shift_detected = 0;
 }
 //update fault list
-//vector = vector_and_grade[0].vector;
-//memcpy(temp_vector,vector,npi*sizeof(int));
 	faults = create_fault_list(graph,Max,vector_and_grade[0].vector,1);
 	k=0;
 	for(j=0;j<=Max;j++){
-			if(graph[j].Po>0 && graph[j].Cval != 2){
+			if(graph[j].Po == 1 && graph[j].Cval != 2 && graph[j].dff != 1){
 				list = faults[k];
 				i=0;
 				while(list[i]!=10){
@@ -686,7 +686,7 @@ for(i=0;i<npi;i++){
 */
 
 
-
+/*
   for(i=0;i<(2*Max-1);i++)
   {
     for(j=0;j<2*Max-i-1;j++)
@@ -700,14 +700,28 @@ for(i=0;i<npi;i++){
       }
     }
   }
-
+*/
+for(i=2;i<2*Max;i++){
+	printf("\nNew function for fault %d i have the grade %f and detected %d",fault_list[i].id,fault_list[i].value,fault_list[i].detected );
+}
 vector = vector_and_grade[0].vector;
-memcpy(temp_vector,vector,npi*sizeof(int));
-printf("Before apply");
+//memcpy(temp_vector,vector,npi*sizeof(int));
+printf("First Vector");
 for(i=0;i<npi;i++){
 	printf("%d",vector_and_grade[0].vector[i]);
 }
-apply(graph,Max,npi,temp_vector,fault_list);
+apply_or_shift(graph,Max,npi,vector_and_grade[0].vector,fault_list);
+printf("Second Vector");
+for(i=0;i<npi;i++){
+	printf("%d",vector_and_grade[0].vector[i]);
+}
+
+apply_or_shift(graph,Max,npi,vector_and_grade[0].vector,fault_list);
+printf("Third Vector");
+for(i=0;i<npi;i++){
+	printf("%d",vector_and_grade[0].vector[i]);
+}
+
 /*
 memcpy(temp_vector,vector,npi*sizeof(int));
 printf("Before shift");
@@ -716,19 +730,17 @@ for(i=0;i<npi;i++){
 }
 shift(graph,Max,npi,temp_vector,fault_list,0);
 */
-for(i=2;i<2*Max;i++){
-	printf("\nNew function for fault %d i have the grade %f and detected %d",fault_list[i].id,fault_list[i].value,fault_list[i].detected );
-}
+
 
 
 }
 
-void apply(NODE *graph,int Max,int npi,int *in_vector,fault_list_info *fault_info)
+int apply_or_shift(NODE *graph,int Max,int npi,int *in_vector,fault_list_info *fault_info)
 {
-int i,j,k,last_dff,flag;
+int i,j,k,last_dff,flag,no_faults;
 int **fault_list;
 int *list,*vector;
-float grade;
+float grade,shift_grade;
 /*
 	for(i=0;i<npi-1;i++){
 		if(graph[i+1].dff == 1){
@@ -738,6 +750,8 @@ float grade;
 	}
 	in_vector[i] = value;
 */
+
+shift_grade = shift(graph,Max,npi,in_vector,fault_info);
 //update input
 	//run this to get values, maybe i can do it before calling this function
 	fault_list = create_fault_list(graph,Max,in_vector,1);
@@ -747,7 +761,7 @@ for(i=0;i<Max;i++){
 }
 
 update_graph(graph,Max);
-
+//PrintCircuit(graph,Max);
 
 /*
 //generate random input fro PI not dff
@@ -757,31 +771,32 @@ for(j=0;j<npi;j++) printf("%d",in_vector[j]);
 */
 
 //call PODEM for the first not detected fault in the list
-for(i=2;i<8;i++){
-	if(fault_info[i].detected == 0){
-		if(fault_info[i].id%2==0){
+for(i=2;i<2*Max;i++){
+	if(fault_info[i].detected == 0){ printf("\nThe current fault is %d\n",fault_info[i].id);
+		if(fault_info[i].id%2==0 && graph[fault_info[i].id/2].Type != 1){
 			vector = Simulate(graph,Max,fault_info[i].id/2,0,npi);
-
-		}if(fault_info[i].id%2==1){
+			for(j=0;j<npi;j++) printf("%d",vector[j]);
+			flag = 0;			
+			for(j=0;j<npi;j++)
+				if(vector[j]==2)
+					flag = 1;
+			if(flag == 0){printf("the vector is full at i %d",i); break;}
+		}else if(fault_info[i].id%2==1 && graph[(fault_info[i].id-1)/2].Type != 1){
 			vector = Simulate(graph,Max,(fault_info[i].id-1)/2,1,npi);
-
+			for(j=0;j<npi;j++) printf("%d",vector[j]);
+			flag = 0;			
+			for(j=0;j<npi;j++)
+				if(vector[j]==2)
+					flag = 1;
+			if(flag == 0){printf("the vector is full at i %d",i); break;}
 		}
-PrintCircuit(graph,Max);
+//PrintCircuit(graph,Max);
 	}
 
-	flag = 0;
-				for(j=0;j<npi;j++) printf("%d",vector[j]);
-	for(j=0;j<npi;j++)
-		if(vector[j]==2 || graph[0].Cval == 3)
-			flag = 1;
-//if(flag == 0){printf("the vector is full at i %d",i); break;}
 }
 
-/*
-for(i=0;i<=Max;i++){
-	if(graph[i].dff == 1 && graph[i].Po == 1 && graph[i].order ==2) last_dff = i;
-}
-
+fault_list = create_fault_list(graph,Max,vector,1);
+no_faults = 0;
 	k=0;
 	grade = 0.0;
 	for(j=0;j<=Max;j++)
@@ -790,8 +805,13 @@ for(i=0;i<=Max;i++){
 				list = fault_list[k];
 				i=0;
 				while(list[i]!=10){
-					if(list[i]==1 && fault_info[i].detected == 0){
-						grade += (float)graph[j].weight/fault_info[i].value;//i have fault with 0
+					if(list[i]==1 && fault_info[i].detected == 0){ no_faults++;
+						if(fault_info[i].value == 0){
+						grade += (float)graph[j].weight/fault_info[2].value;//i have fault with 0
+						} else {
+						grade += (float)graph[j].weight/fault_info[i].value;
+						}
+					fault_info[i].apply_detected = 1;
 					}
 				//printf("\nelement %dth in list is %d",i,list[i]);
 				i++;
@@ -799,13 +819,52 @@ for(i=0;i<=Max;i++){
 			}
 		k++;
 	}
-printf("\nThe grade after apply is %f",grade);
-*/
+printf("\nThe grade after apply is %f and found %d new faults",grade,no_faults);
+if(shift_grade > grade){
+//update input vector
+	k=0;
+	for(i=0;i<=npi-1;i++){
+		if(graph[i].Type == 1){
+			if(graph[i].dff == 1 && graph[i+1].dff == 1){
+				in_vector[k] = in_vector[k+1];
+			}
+		k++;
+		}
+	}
+	k++;
+	in_vector[k] = 0; // shift zero value
+//update fault info
+	for(i=0;i<2*Max;i++){
+		if(fault_info[i].shift_detected == 1)
+			fault_info[i].detected = fault_info[i].shift_detected;
+		printf("\nAfter shift for fault %d i have the grade %f and detected %d",fault_info[i].id,fault_info[i].value,fault_info[i].detected );
+	}
+	printf("Shift Vector before return");
+for(i=0;i<npi;i++){
+	printf("%d",in_vector[i]);
+}
+	return 0;
+}else{
+	memcpy(in_vector,vector,npi*sizeof(int));
+	in_vector = vector;
+	for(i=0;i<2*Max;i++){
+		if(fault_info[i].apply_detected == 1)
+			fault_info[i].detected = fault_info[i].apply_detected;
+		printf("\nAfter apply for fault %d i have the grade %f and detected %d",fault_info[i].id,fault_info[i].value,fault_info[i].detected );
+
+	}
+	printf("Apply Vector before return");
+for(i=0;i<npi;i++){
+	printf("%d",in_vector[i]);
+}
+	return 1;
 }
 
-void shift(NODE *graph,int Max,int npi,int *in_vector,fault_list_info *fault_info,int value)
+}
+
+int shift(NODE *graph,int Max,int npi,int *in_vector,fault_list_info *fault_info)
 {
-int i,j,k,last_dff;
+int i,j,k,last_dff,no_faults;
 int **fault_list;
 int *list;
 float grade;
@@ -818,20 +877,23 @@ float grade;
 	}
 	in_vector[i] = value;
 */
+
 for(i=0;i<=Max;i++){
 	if(graph[i].dff == 1 && graph[i].Po == 1 && graph[i].order ==2) last_dff = i;
 }
 	fault_list = create_fault_list(graph,Max,in_vector,1);
 	k=0;
 	grade = 0.0;
+	no_faults = 0;
 	for(j=0;j<=Max;j++)
 		if(graph[j].Po ==1 && graph[j].Cval != 2){
 			if(last_dff == j){
 				list = fault_list[k];
 				i=0;
 				while(list[i]!=10){
-					if(list[i]==1 && fault_info[i].detected == 0){
+					if(list[i]==1 && fault_info[i].detected == 0){ no_faults++;
 						grade += (float)(graph[j].weight+1)/fault_info[i].value;//i have fault with 0
+						fault_info[i].shift_detected = 1;
 					}
 				//printf("\nelement %dth in list is %d",i,list[i]);
 				i++;
@@ -839,12 +901,13 @@ for(i=0;i<=Max;i++){
 			}
 		k++;
 	}
-printf("\nThe grade after shift is %f",grade);
+printf("\nThe grade after shift is %f and found %d new faults",grade,no_faults);
 printf("\nVector inside shift:");
 for(i=0;i<npi;i++){
 	printf("%d",in_vector[i]);
 }
 //PrintINFO(graph,Max);
+return grade;
 }
 
 int * my_Cudd_zddPrintMinterm(DdManager * zdd,DdNode * node)

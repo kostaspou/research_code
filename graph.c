@@ -230,7 +230,7 @@ new_graph[new_i].order=old_graph[old_i].order;
 new_graph[new_i].chain=old_graph[old_i].chain;
 new_graph[new_i].Mark=0;  
 new_graph[new_i].Cval=-1;
-new_graph[new_i].Fval=-1; 
+new_graph[new_i].Fval=2; 
 CopyList(&old_graph[old_i].Fin,&new_graph[new_i].Fin);
 CopyList(&old_graph[old_i].Fot,&new_graph[new_i].Fot);
 new_graph[new_i].level=old_graph[old_i].level;   

@@ -36,17 +36,23 @@ nodes_number++;
 	new_input = 0;
 	controllability(graph,Max);
 	obj = objective(graph,Max,&node_id,&value,f_node,f_value,&frontier);
+	//printf("\nobjective returned with value %d and new node is %d with value %d and f_node %d",obj,node_id,value,f_node);
 	backtrace(graph,node_id,value,&inp_value,&inp_node,&new_input);
+	//printf("\nBacktrace returned node %d and value %d\n",inp_node,inp_value);
 	push (&event,inp_node);
 	detected = Evaluation(graph,Max,inp_node,inp_value,f_node,f_value);
 	d_frontier(graph,Max,&frontier);
+	//printf("\nfrontier list\n");
+	//PrintList(frontier);
 		if(detected == 1){
-			 //printf("\n------------------------DETECTED-----------------\n");
+			// printf("\n------------------------DETECTED-----------------\n");
 			for(j=0;j<=Max;j++){
-				if(graph[j].Type == INPT){
-					vector[j-1] = graph[j].Cval;
-					//fprintf(fres,"%d",input_value);	
-				}
+				if(graph[j].Cval == 3)
+					graph[j].Fval = 1;
+				else if(graph[j].Cval == 4)
+					graph[j].Fval = 0;
+				else 
+					graph[j].Fval = graph[j].Cval;
 			}
 			coverage++;
 		} else {
@@ -64,7 +70,7 @@ nodes_number++;
 				//printf("\n----------NOT NEW INPUT -----------");
 			}
 			while(error == 1){
-				//printf("\n------------trying to backtrack-------------");
+				//printf("\n------------trying to backtrack-------------event list ---->");PrintList(event);
 				inp_node = pop(&event);
 				inp_value = invert(inp_value);
 				frontier=NULL;
@@ -83,10 +89,12 @@ nodes_number++;
 					error = 0;
 					detected = 1;
 					for(j=0;j<=Max;j++){
-						if(graph[j].Type == INPT){
-							vector[j-1] = graph[j].Cval;
-							//fprintf(fres,"%d",input_value);	
-						}
+						if(graph[j].Cval == 3)
+							graph[j].Fval = 1;
+						else if(graph[j].Cval == 4)
+							graph[j].Fval = 0;
+						else 
+							graph[j].Fval = graph[j].Cval;
 					}
 					//printf("\n------------------------DETECTED-----------------\n");
 					coverage++;
@@ -120,10 +128,12 @@ f_value = value = type_of_fault;
 	if(detected == 1){
 		//printf("\n------------------------DETECTED AT FIRST BACKTRACK-----------------\n");
 			for(j=0;j<=Max;j++){
-				if(graph[j].Type == INPT){
-					vector[j-1] = graph[j].Cval;
-					//fprintf(fres,"%d",input_value);	
-				}
+				if(graph[j].Cval == 3)
+					graph[j].Fval = 1;
+				else if(graph[j].Cval == 4)
+					graph[j].Fval = 0;
+				else 
+					graph[j].Fval = graph[j].Cval;
 			}
 		coverage++;
 	} else {
@@ -162,10 +172,12 @@ f_value = value = type_of_fault;
 				detected = 1;
 				//printf("\n------------------------DETECTED AT FIRST BACKTRACK-----------------\n");
 				for(j=0;j<=Max;j++){
-					if(graph[j].Type == INPT){
-						vector[j-1] = graph[j].Cval;
-						//fprintf(fres,"%d",input_value);	
-					}
+					if(graph[j].Cval == 3)
+						graph[j].Fval = 1;
+					else if(graph[j].Cval == 4)
+						graph[j].Fval = 0;
+					else 
+						graph[j].Fval = graph[j].Cval;
 				}
 				coverage++;
 			}else if(frontier == NULL) {
@@ -178,10 +190,21 @@ f_value = value = type_of_fault;
 	if(frontier!=NULL) frontier=NULL; event = NULL;
 temp = temp->next;
 }*/
+
+					for(j=0;j<=Max;j++){
+						if(graph[i].Fval != 2) graph[i].Mark = 1;
+						if(graph[j].Type == INPT){
+							vector[j-1] = graph[j].Fval;
+							//fprintf(fres,"%d",input_value);	
+						}
+					}
+
+/*
 printf("\nTotal number of nodes %d and faults detected %d and event list is empty %d and not detected %d \n",nodes_number,coverage,event_null,nodes_number-coverage);
 printf("------------------------RESULTS---------------------------\n\tTOTAl FAULTS->%d\n\tDETECTED->%d\n\tPERCENTAGE->%g\r\n",nodes_number,coverage,(((double)coverage)/nodes_number*100));
 end = clock();
 printf("\nTIME SPENT TO GENERATE THE PATTERNS %f\n",(double)(end-begin)/CLOCKS_PER_SEC);
+*/
 return vector;
 }//end of Simulate function
 
@@ -356,6 +379,7 @@ int j,max;
 				break;
 
 		} //end case
+	graph[j].Cval = graph[j].Fval;
 	}
 
 }
@@ -427,7 +451,6 @@ int previous,i,res;
 
 
 		for(i=0;i<=Max;i++){
-			graph[i].Mark = 0;
 // Switch statement to manipulate every node according to their type
 			switch (graph[i].Type)  {
 			    case INPT  :
@@ -538,11 +561,11 @@ int previous,i,res;
 			    } //end case
 
 				//inject the input
-				if (i == node_id ){
+				if (i == node_id && graph[i].Mark == 0){
 					graph[i].Cval = value;
 					//printf("i am here\n");
 				}
-					if(i == f_node){
+					if(i == f_node && graph[i].Mark == 0){
 						if(graph[i].Cval == f_value){
 							if(f_value == 1) graph[i].Cval = 3;
 							else if(f_value == 0) graph[i].Cval = 4;

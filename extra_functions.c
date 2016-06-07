@@ -117,6 +117,8 @@ int previous,i,res;
 				break;
 
 			    } //end case
+		if(graph[i].Cval != 2) graph[i].Mark = 1;
+		graph[i].Fval = graph[i].Cval;
 	}
 
 }//end of function
