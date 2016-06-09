@@ -27,7 +27,7 @@ Max = netlist.max;
 no_inputs = netlist.no_inputs;
 
 algorithm(new_graph,Max,no_inputs);
-
+//test_podem(new_graph,Max,no_inputs);
 /*vector = Simulate(new_graph,Max,25,0,no_inputs);
 printf("\n");
 for(i=0;i<no_inputs;i++)

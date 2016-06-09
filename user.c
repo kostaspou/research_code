@@ -26,7 +26,7 @@ clock_t begin,end;
 begin = clock();
 
 int * vector = (int *) malloc(npi*sizeof(int));
-
+printf("\n Faulty node is %d and has fault %d",fault_node,type_of_fault);
 nodes_number++;
 	detected = 0;
 	error = 0;
@@ -199,9 +199,9 @@ temp = temp->next;
 						}
 					}
 
-/*
+
 printf("\nTotal number of nodes %d and faults detected %d and event list is empty %d and not detected %d \n",nodes_number,coverage,event_null,nodes_number-coverage);
-printf("------------------------RESULTS---------------------------\n\tTOTAl FAULTS->%d\n\tDETECTED->%d\n\tPERCENTAGE->%g\r\n",nodes_number,coverage,(((double)coverage)/nodes_number*100));
+/*printf("------------------------RESULTS---------------------------\n\tTOTAl FAULTS->%d\n\tDETECTED->%d\n\tPERCENTAGE->%g\r\n",nodes_number,coverage,(((double)coverage)/nodes_number*100));
 end = clock();
 printf("\nTIME SPENT TO GENERATE THE PATTERNS %f\n",(double)(end-begin)/CLOCKS_PER_SEC);
 */

@@ -105,7 +105,7 @@ typedef struct preprocess_type{
 
 typedef struct FAULT_LIST_TYPE{
 	float value;
-	int id,detected,apply_detected,shift_detected;
+	int id,detected;
 }fault_list_info;
 
 typedef struct history_info_type{
@@ -184,9 +184,10 @@ int * my_Cudd_zddPrintMinterm(DdManager *,DdNode *);
 preprocess_info fault_grading(NODE *,int,int );
 int Two_Gates (int, int , int );
 void algorithm(NODE *,int ,int );
-int shift(NODE *,int ,int ,int *,fault_list_info *);
-int apply_or_shift(NODE *,int ,int ,int *,fault_list_info *);
+float shift(NODE *,int ,int ,int *,fault_list_info *,int );
+float apply(NODE *,int ,int ,int *,fault_list_info *,fault_list_info *);
 /***************************************************************************************************************************
 Functions in extra_functions.c
 ****************************************************************************************************************************/
 void update_graph(NODE *,int );
+void test_podem(NODE *,int ,int );

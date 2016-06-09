@@ -1,5 +1,50 @@
 #include "graph.h"
 
+
+void test_podem(NODE *graph,int Max,int npi){
+
+int i,j,k;
+int * vector,*list,**faults;
+
+for(j=0;j<=Max;j++){
+	graph[j].Cval = graph[j].Fval = 2;
+	graph[j].Mark =0;
+}
+
+graph[1].Cval = 1;
+graph[5].Cval = 0;
+
+update_graph(graph,Max);
+
+vector = Simulate(graph,Max,25,0,npi);
+PrintINFO(graph,Max);
+printf("\nReturned Vector");
+for(i=0;i<npi;i++){
+//if(vector[i] == 2) vector[i]=1;
+	printf("%d",vector[i]);
+}
+//update fault list
+	faults = create_fault_list(graph,Max,vector,1);
+	k=0;
+	for(j=0;j<=Max;j++){
+			if(graph[j].Po == 1 && graph[j].Cval != 2){
+				list = faults[k];
+				i=0;
+				while(list[i]!=10){
+					if(list[i]==1){
+						printf("\n I have detected the %d fault",i);
+					}
+				//printf("\nelement %dth in list is %d",i,list[i]);
+				i++;
+				}
+		k++;
+		}
+	}
+
+
+}
+
+
 void update_graph(NODE *graph,int Max)
 {
 LIST *fanin;
