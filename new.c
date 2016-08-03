@@ -621,18 +621,16 @@ return preprocess;
 
 void algorithm(NODE *graph,int Max,int npi){
 
-int i,j,k,apply0_grade,no_faults,previous;
+int i,j,k,no_faults,previous,no_dff,not_det;
 preprocess_info preprocess;
 int * vector,*list,**faults;
-float *fault_grades,apply1_grade,shift_grade;
+float *fault_grades,apply0_grade,shift_grade;
 vector_info *vector_and_grade;
 fault_list_info swap;
 int *apply0_vector = (int *)malloc(npi*sizeof(int));
-int *apply1_vector = (int *)malloc(npi*sizeof(int));
 int *shift_vector = (int *)malloc(npi*sizeof(int));
 fault_list_info *final_fault_list = (fault_list_info  *)malloc(2*Max*sizeof(fault_list_info ));
 fault_list_info *apply0_fault_list = (fault_list_info  *)malloc(2*Max*sizeof(fault_list_info ));
-fault_list_info *apply1_fault_list = (fault_list_info  *)malloc(2*Max*sizeof(fault_list_info ));
 fault_list_info *shift_fault_list = (fault_list_info  *)malloc(2*Max*sizeof(fault_list_info ));
 history_info *history = (history_info  *)malloc(sizeof(history_info ));
 
@@ -640,22 +638,27 @@ preprocess = fault_grading(graph,Max,npi);
 
 vector_and_grade = preprocess.vector_data;
 fault_grades = preprocess.fault_grades;
-
+no_dff = 0;
+//initialize the fault lists
 for(i=0;i<2*Max;i++){
-	final_fault_list[i].value = shift_fault_list[i].value = apply0_fault_list[i].value = apply1_fault_list[i].value = fault_grades[i];
-	final_fault_list[i].id = shift_fault_list[i].id = apply0_fault_list[i].id = apply1_fault_list[i].id= i;
-	final_fault_list[i].detected = shift_fault_list[i].detected = apply0_fault_list[i].detected = apply1_fault_list[i].detected = 0;
+	final_fault_list[i].value = shift_fault_list[i].value = apply0_fault_list[i].value = fault_grades[i];
+	final_fault_list[i].id = shift_fault_list[i].id = apply0_fault_list[i].id = i;
+	final_fault_list[i].detected = shift_fault_list[i].detected = apply0_fault_list[i].detected = 0;
 }
-//update fault list
+no_faults = 0;
+//update fault list with the first random vector faults detected at the PO
 	faults = create_fault_list(graph,Max,vector_and_grade[0].vector,1);
 	k=0;
 	for(j=0;j<=Max;j++){
+			if(graph[j].Po == 1 && graph[j].dff == 1){no_dff++;}
 			if(graph[j].Po == 1 && graph[j].Cval != 2 && graph[j].dff != 1){
 				list = faults[k];
 				i=0;
 				while(list[i]!=10){
 					if(list[i]==1){
 						final_fault_list[i].detected = 1;
+						no_faults++;
+					printf("\nAt J = %d I have detected fault %d",j,i);
 					}
 				//printf("\nelement %dth in list is %d",i,list[i]);
 				i++;
@@ -663,12 +666,13 @@ for(i=0;i<2*Max;i++){
 		k++;
 		}
 	}
+printf("\nNumber of faults detected from the first random vector ad PO is %d",no_faults);
 //decision = 0 for apply
 //decision = 1 for shift
 history[0].vector = vector_and_grade[0].vector;
 //memcpy(history[0].vector,vector,npi*sizeof(int));
 history[0].decision = 0;
-/*
+
 for(i=0;i<39;i++){
 	printf("\n%dth vector at new is :",i);
 	vector = vector_and_grade[i].vector;
@@ -677,7 +681,7 @@ for(i=0;i<39;i++){
 	}
 printf(" with grade %f",vector_and_grade[i].grade);
 }
-*/
+
 /*
 printf("\nGrade of vector:");
 for(i=0;i<npi;i++){
@@ -710,20 +714,24 @@ for(i=0;i<npi;i++){
   }
 no_faults = 0;
 for(i=2;i<2*Max;i++){
-	printf("\nBefore calling apply function for fault %d i have the grade %f and detected %d",final_fault_list[i].id,final_fault_list[i].value,final_fault_list[i].detected );
+	//printf("\nBefore calling apply function for fault %d i have the grade %f and detected %d",final_fault_list[i].id,final_fault_list[i].value,final_fault_list[i].detected );
 	if(final_fault_list[i].detected == 1) no_faults++;
 }
 printf("\nI have detected %d faults",no_faults);
 
 vector = vector_and_grade[0].vector;
+printf("\nFIRST VECTOR FROM RANDOM VECTORS has %f and is \n",vector_and_grade[0].grade);
+for(i=0;i<npi;i++){
+	printf("%d",vector[i]);
+}
 previous = 0;
-for(k=2;k<4;k++){
+for(k=2;k<20;k++){
 	history = (history_info  *)realloc(history,k*sizeof(history_info ));
 	memcpy(apply0_vector,vector,npi*sizeof(int));
-	if(previous == 0){
+	if(previous == 0 || previous == no_dff){
 		memcpy(shift_vector,vector,npi*sizeof(int));
 	} else { 
-		memcpy(shift_vector,history[k-3].vector,npi*sizeof(int));
+		memcpy(shift_vector,history[k-2-previous].vector,npi*sizeof(int));
 	}
 
 printf("\nNEXT VECTOR FOR SHIFT \n");
@@ -735,11 +743,10 @@ for(i=0;i<npi;i++){
 	printf("%d",apply0_vector[i]);
 }
 
-		//memcpy(apply0_fault_list,final_fault_list,2*Max*sizeof(fault_list_info));
+		//update the fault lists for each decision with the detected faults so far
 		for(i=2;i<2*Max;i++){
 			apply0_fault_list[final_fault_list[i].id].detected = final_fault_list[i].detected;
 			shift_fault_list[final_fault_list[i].id].detected = final_fault_list[i].detected;
-			apply1_fault_list[final_fault_list[i].id].detected = final_fault_list[i].detected;
 		}
 		apply0_grade = apply(graph,Max,npi,apply0_vector,final_fault_list,apply0_fault_list);
 		printf("\nApply Vector");
@@ -756,36 +763,47 @@ for(i=0;i<npi;i++){
 	//update final fault list
 	for(i=2;i<2*Max;i++){
 		if(apply0_grade > shift_grade){
-			if(apply0_fault_list[i].detected == 1)
-				final_fault_list[apply0_fault_list[i].id].detected = apply0_fault_list[i].detected;
+				final_fault_list[i].detected = apply0_fault_list[final_fault_list[i].id].detected;
 		} else {
-			if(shift_fault_list[i].detected == 1)
-				final_fault_list[shift_fault_list[i].id].detected = shift_fault_list[i].detected;
-				vector = shift_vector;
+				final_fault_list[i].detected = shift_fault_list[final_fault_list[i].id].detected;
+				//vector = shift_vector;
 		}
 		//apply1_fault_list[final_fault_list[i].id].detected = final_fault_list[i].detected;
 	}
 
-	no_faults = 0;
+	no_faults = not_det = 0;
 	for(i=2;i<2*Max;i++){
-		printf("\nAfter calling functions for fault %d i have the grade %f and detected %d",final_fault_list[i].id,final_fault_list[i].value,final_fault_list[i].detected );
+		//printf("\nAfter calling functions for fault %d i have the grade %f and detected %d",final_fault_list[i].id,final_fault_list[i].value,final_fault_list[i].detected );
 		if(final_fault_list[i].detected == 1) no_faults++;
+		else {printf("\nNOT Detected fault %d",final_fault_list[i].id); not_det++;}
 	}
-	printf("\nI have detected %d faults",no_faults);
+	printf("\nI have detected %d faults and not detected %d  with shift grade %f and apply grade %f",no_faults,not_det,shift_grade,apply0_grade);
 	if(apply0_grade > shift_grade){
 		vector = apply0_vector;
 		previous = 0;
+		printf("\ni will go with APPLY");
 	}else{ 
 		vector = shift_vector;
+		printf("\ni will go with SHIFT");
 		if(previous > 0) previous++;
 		else previous = 1;
 	}
-	history[k-1].vector = vector;
-	history[k-1].decision = previous;
-	printf("\nFinal Vector");
+if(previous == no_dff){
+		for(i=2;i<2*Max;i++){
+			shift_fault_list[final_fault_list[i].id].detected = final_fault_list[i].detected;
+		}
+previous = 0;
+vector = fetch_vector(graph,Max,vector_and_grade,shift_fault_list,400);//change number of vectors
+}
+//memcpy(apply1_vector,vector,npi*sizeof(int));
+	history[k-1].vector = (int *)malloc(npi*sizeof(int));
+	memcpy(history[k-1].vector,vector,npi*sizeof(int));
+	//history[k-1].decision = previous;
+	printf("\nFinal Vector #%d with previous %d\n",k,previous);
 	for(i=0;i<npi;i++){
 		printf("%d",vector[i]);
 	}
+
 }//end of for loop
 
 /*
@@ -804,12 +822,12 @@ for(i=0;i<npi;i++){
 shift(graph,Max,npi,temp_vector,fault_list,0);
 */
 
-printf("All vectors");
-for(j=0;j<3;j++){printf("\n");
-for(i=0;i<npi;i++){
-	printf("%d",history[j].vector[i]);
-}
-}
+	printf("\nAll vectors");
+	for(j=0;j<k-1;j++){printf("\n");
+	for(i=0;i<npi;i++){
+		printf("%d",history[j].vector[i]);
+	}
+	}
 }
 
 float apply(NODE *graph,int Max,int npi,int *in_vector,fault_list_info *ordered_fault_info,fault_list_info *fault_info)
@@ -818,7 +836,6 @@ int i,j,k,last_dff,flag,no_faults;
 int **fault_list;
 int *list,*vector;
 float grade;
-
 
 //shift_grade = shift(graph,Max,npi,in_vector,fault_info);
 //update input
@@ -842,7 +859,7 @@ for(j=0;j<npi;j++) printf("%d",in_vector[j]);
 //call PODEM for the first not detected fault in the list
 for(i=2;i<2*Max;i++){
 	if(ordered_fault_info[i].detected == 0){ printf("\nThe current fault is %d\n",ordered_fault_info[i].id);
-		if(ordered_fault_info[i].id%2==0 && graph[ordered_fault_info[i].id/2].Type != 1){
+		if(ordered_fault_info[i].id%2==0 && graph[ordered_fault_info[i].id/2].Fval == 2){
 			vector = Simulate(graph,Max,ordered_fault_info[i].id/2,0,npi);
 			for(j=0;j<npi;j++) printf("%d",vector[j]);
 			flag = 0;			
@@ -850,7 +867,7 @@ for(i=2;i<2*Max;i++){
 				if(vector[j]==2)
 					flag = 1;
 			if(flag == 0){printf("the vector is full at i %d",i); break;}
-		}else if(ordered_fault_info[i].id%2==1 && graph[(ordered_fault_info[i].id-1)/2].Type != 1){
+		}else if(ordered_fault_info[i].id%2==1 && graph[(ordered_fault_info[i].id-1)/2].Fval == 2){
 			vector = Simulate(graph,Max,(ordered_fault_info[i].id-1)/2,1,npi);
 			for(j=0;j<npi;j++) printf("%d",vector[j]);
 			flag = 0;			
@@ -897,6 +914,7 @@ no_faults = 0;
 	for(i=0;i<npi;i++){
 		printf("%d",in_vector[i]);
 	}
+return grade;
 }
 
 float shift(NODE *graph,int Max,int npi,int *in_vector,fault_list_info *fault_info,int previous)
@@ -931,10 +949,11 @@ for(i=0;i<=Max;i++){
 				list = fault_list[k];
 				i=0;
 				while(list[i]!=10){
-						fault_info[i].detected = 0;
+						//fault_info[i].detected = 0;
 					if(list[i]==1 && fault_info[i].detected == 0){ no_faults++;
 						grade += (float)(graph[j].weight+1)/fault_info[i].value;//i have fault with 0
 						fault_info[i].detected = 1;
+					printf("\nAt J = %d I have detected fault %d",j,i);
 					}
 				//printf("\nelement %dth in list is %d",i,list[i]);
 				i++;
@@ -947,8 +966,8 @@ printf("\nThe grade after shift is %f and found %d new faults",grade,no_faults);
 	k=0;
 	for(i=0;i<=npi-1-previous;i++){
 		if(graph[i].Type == 1){
-			if(graph[i].dff == 1 && graph[i+1].dff == 1){
-				in_vector[k] = in_vector[k+1];
+			if(graph[i].dff == 1 && graph[i+1+previous].dff == 1){
+				in_vector[k] = in_vector[k+1+previous];
 			}
 		k++;
 		}

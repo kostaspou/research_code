@@ -44,6 +44,56 @@ for(i=0;i<npi;i++){
 
 }
 
+int * fetch_vector(NODE *graph,int Max,vector_info * vector_and_grade,fault_list_info *fault_grades ,int no_vectors)
+{
+int n,i,j,k;
+int **fault_list,*list,*swap;
+float temp;
+
+for(n=0;n<no_vectors;n++){
+vector_and_grade[n].grade = 0.0;
+	fault_list = create_fault_list(graph,Max,vector_and_grade[n].vector,1);
+	k=0;
+	for(j=0;j<=Max;j++){
+			if(graph[j].Po>0 && graph[j].Cval != 2){
+				list = fault_list[k];
+				i=0;
+				while(list[i]!=10){
+					if(list[i]==1 && fault_grades[i].detected == 0){
+						vector_and_grade[n].grade += (float)graph[j].weight/fault_grades[i].value;
+					}
+				//printf("\nelement %dth in list is %d",i,list[i]);
+				i++;
+				}
+		k++;
+		}
+	}
+}
+
+
+//order the vectors
+  for(i=0;i<(no_vectors-1);i++)
+  {
+    for(j=0;j<no_vectors-i-1;j++)
+    {
+      if (vector_and_grade[j].grade < vector_and_grade[j+1].grade) /* For decreasing order use < */
+      { 
+        swap = vector_and_grade[j].vector;
+	temp = vector_and_grade[j].grade;
+        vector_and_grade[j].vector   = vector_and_grade[j+1].vector;
+	vector_and_grade[j].grade = vector_and_grade[j+1].grade;
+        vector_and_grade[j+1].vector = swap;
+	vector_and_grade[j+1].grade = temp;
+
+      }
+    }
+  }
+printf("\nNext random vector has grade %f and is :\n",vector_and_grade[0].grade);
+for(i=0;i<7;i++){
+	printf("%d",vector_and_grade[0].vector[i]);
+}
+return vector_and_grade[0].vector;
+}
 
 void update_graph(NODE *graph,int Max)
 {

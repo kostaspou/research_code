@@ -191,3 +191,4 @@ Functions in extra_functions.c
 ****************************************************************************************************************************/
 void update_graph(NODE *,int );
 void test_podem(NODE *,int ,int );
+int * fetch_vector(NODE *,int ,vector_info * ,fault_list_info *,int );
